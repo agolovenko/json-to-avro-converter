@@ -1,8 +1,6 @@
 # json-to-avro-converter
 Converter of JSON format to AVRO `GenericData.Record` written in Scala using Play-Json
 
-## JSON2Avro Converter
-
 ### Features
 
 * unions without avro wrapping
