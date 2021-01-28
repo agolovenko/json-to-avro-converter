@@ -16,9 +16,7 @@ import org.apache.avro.generic.GenericData
 import org.apache.avro.Schema
 import play.api.libs.json.Json
 
-import Schema._
-
-val schema = new Parser().parse("""
+val schema = new Schema.Parser().parse("""
      |{
      |  "type": "record",
      |  "name": "sch_rec2",
