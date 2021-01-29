@@ -1,24 +1,16 @@
-package agolovenko.avro
+package org.echo.avro
 
 import org.apache.avro.generic.GenericData
 import org.apache.avro.{JsonProperties, Schema}
 import play.api.libs.json._
 
 import java.lang.{Boolean => JBool, Double => JDouble, Float => JFloat, Integer => JInt, Long => JLong}
-import java.util.{HashMap => JHashMap, List => JList, Map => JMap}
+import java.util.{Base64, HashMap => JHashMap, List => JList, Map => JMap}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
 
-class AvroParserException(message: String, path: mutable.ArrayStack[String])
-    extends IllegalArgumentException(s"$message @ ${path.reverse.mkString("/", "/", "")}")
-
-class WrongTypeException(expectedType: String, actual: JsValue, path: mutable.ArrayStack[String])
-    extends AvroParserException(s"Failed to extract $expectedType from $actual", path)
-
-class MissingValueException(expectedType: String, path: mutable.ArrayStack[String]) extends AvroParserException(s"Missing $expectedType node", path)
-
-class AvroParser {
+class JsonConverter {
   import Schema.Type._
 
   def parse(data: JsValue, schema: Schema): GenericData.Record = {
@@ -26,7 +18,7 @@ class AvroParser {
     if (schema.getType == RECORD)
       readRecord(JsDefined(data), schema, path, defaultValue = None)
     else
-      throw new AvroParserException(s"Unsupported root schema of type ${schema.getType}", path)
+      throw new JsonConverterException(s"Unsupported root schema of type ${schema.getType}", path)
   }
 
   private def readAny(data: JsLookupResult, schema: Schema, path: mutable.ArrayStack[String], defaultValue: Option[Any]): Any = schema.getType match {
@@ -35,6 +27,8 @@ class AvroParser {
     case ARRAY  => readArray(data, schema, path, defaultValue)
     case MAP    => readMap(data, schema, path, defaultValue)
     case UNION  => readUnion(data, schema, path, defaultValue)
+    case BYTES  => readBytes(data, schema, path, defaultValue)
+    case FIXED  => readFixed(data, schema, path, defaultValue)
 
     case STRING  => read[String](data, schema, path, defaultValue)
     case INT     => read[Int](data, schema, path, defaultValue)
@@ -44,8 +38,6 @@ class AvroParser {
     case BOOLEAN => read[Boolean](data, schema, path, defaultValue)
 
     case NULL => readNull(data, schema, path, defaultValue)
-
-    case BYTES | FIXED => throw new AvroParserException(s"Unsupported type: ${schema.getType}", path)
   }
 
   private def readRecord(data: JsLookupResult, schema: Schema, path: mutable.ArrayStack[String], defaultValue: Option[Any]): GenericData.Record = data match {
@@ -66,7 +58,7 @@ class AvroParser {
     val symbol = read[String](data, schema, path, defaultValue)
 
     if (schema.getEnumSymbols.contains(symbol)) new GenericData.EnumSymbol(schema, symbol)
-    else throw new AvroParserException(s"Invalid value $symbol outside of enum ${schema.getEnumSymbols.asScala.mkString("[", ",", "]")}", path)
+    else throw new WrongTypeException(schema.getEnumSymbols.asScala.mkString("|"), data.get, path)
   }
 
   private def readArray(data: JsLookupResult, schema: Schema, path: mutable.ArrayStack[String], defaultValue: Option[Any]): GenericData.Array[Any] =
@@ -117,6 +109,23 @@ class AvroParser {
     }
   }
 
+  private def readBytes(data: JsLookupResult, schema: Schema, path: mutable.ArrayStack[String], defaultValue: Option[Any]): Array[Byte] = {
+    val base64Str = read[String](data, schema, path, defaultValue)
+
+    try {
+      Base64.getDecoder.decode(base64Str)
+    } catch {
+      case _: IllegalArgumentException => throw new WrongTypeException("Base64 string", data.get, path)
+    }
+  }
+
+  private def readFixed(data: JsLookupResult, schema: Schema, path: mutable.ArrayStack[String], defaultValue: Option[Any]): GenericData.Fixed = {
+    val bytes = readBytes(data, schema, path, defaultValue)
+
+    if (bytes.length == schema.getFixedSize) new GenericData.Fixed(schema, bytes)
+    else throw new WrongTypeException(s"FIXED[${schema.getFixedSize}]", data.get, path)
+  }
+
   private def read[T: Reads](data: JsLookupResult, schema: Schema, path: mutable.ArrayStack[String], defaultValue: Option[Any]): T = data match {
     case JsDefined(value) =>
       value
@@ -146,21 +155,29 @@ class AvroParser {
     case (FLOAT, value: JFloat)            => value.floatValue()
     case (DOUBLE, value: JDouble)          => value.doubleValue()
     case (BOOLEAN, value: JBool)           => value.booleanValue()
+    case (BYTES, value: Array[Byte])       => toBase64(value)
+
+    case (FIXED, value: Array[Byte]) =>
+      if (value.length == schema.getFixedSize) toBase64(value)
+      else throw new JsonConverterException(s"Schema defines default FIXED[${schema.getFixedSize}] value of size ${value.length}", path)
 
     case (ARRAY, list: JList[_]) =>
       val extracted = list.asScala.map { extractDefaultValue(_, schema.getElementType, path) }
       new GenericData.Array(schema, extracted.asJava)
+
     case (MAP, map: JMap[_, _]) =>
       map.asScala.mapValues { extractDefaultValue(_, schema.getValueType, path) }.asJava
+
     case (RECORD, map: JMap[_, _]) =>
       val result = new GenericData.Record(schema)
       map.asScala.foreach {
         case (k, value) =>
           val key       = k.asInstanceOf[String]
           val extracted = extractDefaultValue(value, schema.getField(key).schema(), path)
-          result.put(key.asInstanceOf[String], extracted)
+          result.put(key, extracted)
       }
       result
-    case _ => throw new AvroParserException(s"Unsupported default value $defaultValue for type ${schema.getType}", path)
+
+    case _ => throw new JsonConverterException(s"Unsupported default value $defaultValue for type ${schema.getType}", path)
   }
 }

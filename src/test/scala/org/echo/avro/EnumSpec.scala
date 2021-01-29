@@ -1,4 +1,4 @@
-package agolovenko.avro
+package org.echo.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -21,7 +21,7 @@ class EnumSpec extends AnyWordSpec with Matchers {
 
   "parses correctly" in {
     val data   = Json.parse("""{"field1": "ev1"}""")
-    val record = new AvroParser().parse(data, schema)
+    val record = new JsonConverter().parse(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(new GenericData.EnumSymbol(fieldWithDefault.schema(), "ev1"))
@@ -29,17 +29,17 @@ class EnumSpec extends AnyWordSpec with Matchers {
 
   "fails on missing value" in {
     val data = Json.parse("{}")
-    a[MissingValueException] should be thrownBy new AvroParser().parse(data, schema)
+    a[MissingValueException] should be thrownBy new JsonConverter().parse(data, schema)
   }
 
   "fails on invalid value" in {
     val data = Json.parse("""{"field1": "ev33"}""")
-    a[AvroParserException] should be thrownBy new AvroParser().parse(data, schema)
+    a[JsonConverterException] should be thrownBy new JsonConverter().parse(data, schema)
   }
 
   "applies default value" in {
     val data   = Json.parse("{}")
-    val record = new AvroParser().parse(data, schemaWithDefault)
+    val record = new JsonConverter().parse(data, schemaWithDefault)
 
     ReflectData.get().validate(schema, record) should ===(true)
     record.get("field2") should ===(new GenericData.EnumSymbol(fieldWithDefault.schema(), "ev2"))

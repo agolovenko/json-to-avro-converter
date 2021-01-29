@@ -1,10 +1,11 @@
-package agolovenko
+package org.echo
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericData, GenericDatumReader, GenericDatumWriter}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 
 import java.io.ByteArrayOutputStream
+import java.util.Base64
 
 package object avro {
   def toBytes(record: GenericData.Record): Array[Byte] = {
@@ -25,4 +26,6 @@ package object avro {
 
     reader.read(null, decoder)
   }
+
+  private[avro] def toBase64(bytes: Array[Byte]): String = new String(Base64.getEncoder.encode(bytes), "UTF-8")
 }

@@ -1,4 +1,4 @@
-package agolovenko.avro
+package org.echo.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -44,7 +44,7 @@ class NestedRecordArraySpec extends AnyWordSpec with Matchers {
 
   "parses nested record array correctly" in {
     val data   = Json.parse("""{"field1": [{"n_field1": "aaa", "n_field2": 23}]}""")
-    val record = new AvroParser().parse(data, schema)
+    val record = new JsonConverter().parse(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
 
@@ -57,7 +57,7 @@ class NestedRecordArraySpec extends AnyWordSpec with Matchers {
 
   "applies default value to nested record array" in {
     val data   = Json.parse("{}")
-    val record = new AvroParser().parse(data, schema)
+    val record = new JsonConverter().parse(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
 

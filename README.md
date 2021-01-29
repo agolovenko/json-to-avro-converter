@@ -1,20 +1,22 @@
 # json-to-avro-converter
 
-Converter of JSON format to AVRO `GenericData.Record` written in Scala using Play-Json
+Converter of JSON object format to AVRO `GenericData.Record` written in Scala using Play-Json
 
 ### Features
 
-* unions without avro wrapping
+* unions as you would expect them to be in plain JSON: without avro wrapping
 * schema's default values are used if data is missing
 * data not present in schema is ignored
-* currently not supporting `BYTES` and `FIXED` types
+* `BYTES` and `FIXED` types are supported through `Base64` strings
+* Comprehensive Exceptions: General/Missing Value/Wrong Type. All containing JSON path and description
 
 ### Usage
 
 ```scala
-import agolovenko.avro._
+import org.echo.avro._
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
+import org.echo.avro.JsonConverter
 import play.api.libs.json.{JsValue, Json}
 
 val schema: Schema = new Schema.Parser().parse(
@@ -35,7 +37,7 @@ val schema: Schema = new Schema.Parser().parse(
     |}""".stripMargin)
 
 val data: JsValue              = Json.parse("""{"field1": [12, 14]}""")
-val record: GenericData.Record = new AvroParser().parse(data, schema)
+val record: GenericData.Record = new JsonConverter().parse(data, schema)
 val bytes: Array[Byte]         = toBytes(record)
 ```
 
