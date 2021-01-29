@@ -1,12 +1,16 @@
-scalaVersion in ThisBuild := "2.11.12" // also works with "2.12.12"
+lazy val scala212               = "2.12.13"
+lazy val scala211               = "2.11.12"
+lazy val supportedScalaVersions = Seq(scala212, scala211)
 
-fork in Test in ThisBuild := true
+ThisBuild / scalaVersion := scala212
+ThisBuild / Test / fork := true
 
 lazy val root = project
   .in(file("."))
   .enablePlugins(GitVersioning)
   .settings(
-    name := "json-to-avro-converter",
     organization := "org.echo",
-    libraryDependencies ++= Dependencies.all
+    name := "json-to-avro-converter",
+    crossScalaVersions := supportedScalaVersions,
+    libraryDependencies ++= new Dependencies(scalaVersion.value).all
   )

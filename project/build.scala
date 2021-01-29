@@ -1,11 +1,13 @@
 import sbt._
 
-object Dependencies {
-  private val apacheAvro = "org.apache.avro"   % "avro"       % "1.10.1"
-  private val playJson   = "com.typesafe.play" %% "play-json" % "2.7.4"
-  private val scalaTest  = "org.scalatest"     %% "scalatest" % "3.2.3"
+class Dependencies(scalaVersion: String) {
+  private def playJsonVersion = if (scalaVersion.startsWith("2.11")) "2.7.4" else "2.9.2"
 
-  val all: Seq[ModuleID] = Seq(
+  private def apacheAvro = "org.apache.avro"   % "avro"       % "1.10.1"
+  private def playJson   = "com.typesafe.play" %% "play-json" % playJsonVersion
+  private def scalaTest  = "org.scalatest"     %% "scalatest" % "3.2.3"
+
+  def all: Seq[ModuleID] = Seq(
     playJson   % Compile,
     apacheAvro % Compile,
     scalaTest  % Test

@@ -9,6 +9,7 @@ Converter of JSON object format to AVRO `GenericData.Record` written in Scala us
 * data not present in schema is ignored
 * `BYTES` and `FIXED` types are supported through `Base64` strings
 * Comprehensive Exceptions: General/Missing Value/Wrong Type. All containing JSON path and description
+* Built against scala 2.11 and 2.12
 
 ### Usage
 
@@ -41,4 +42,4 @@ val record: GenericData.Record = new JsonConverter().parse(data, schema)
 val bytes: Array[Byte]         = toBytes(record)
 ```
 
-For more examples check out the tests!
+For more examples check out the [tests](src/test/scala/org/echo/avro)!
