@@ -13,8 +13,8 @@ package object avro {
     writer.setSchema(record.getSchema)
 
     val out     = new ByteArrayOutputStream()
-    val encoder = EncoderFactory.get().binaryEncoder(out, null);
-    writer.write(record, encoder);
+    val encoder = EncoderFactory.get().binaryEncoder(out, null)
+    writer.write(record, encoder)
     encoder.flush()
 
     out.toByteArray
