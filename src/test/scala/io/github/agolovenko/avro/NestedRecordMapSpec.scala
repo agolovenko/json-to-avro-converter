@@ -1,4 +1,4 @@
-package org.echo.avro
+package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
@@ -7,9 +7,9 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 
-import scala.collection.JavaConverters._
+import java.util.Collections
 
-class NestedRecordArraySpec extends AnyWordSpec with Matchers {
+class NestedRecordMapSpec extends AnyWordSpec with Matchers {
   import Schema._
 
   private val schema = new Parser().parse("""
@@ -21,8 +21,8 @@ class NestedRecordArraySpec extends AnyWordSpec with Matchers {
       |     "name": "field1",
       |     "type": {
       |       "name": "sch_n_arr2",
-      |       "type": "array",
-      |       "items": {
+      |       "type": "map",
+      |       "values": {
       |         "name": "sch_n_rec2",
       |         "type": "record",
       |         "fields": [
@@ -37,34 +37,32 @@ class NestedRecordArraySpec extends AnyWordSpec with Matchers {
       |          ]
       |        }
       |      },
-      |      "default": [{"n_field1": "bbb", "n_field2": 33}]
+      |      "default": {"key1": {"n_field1": "bbb", "n_field2": 33}}
       |    }
       |  ]
       |}""".stripMargin)
 
-  "parses nested record array correctly" in {
-    val data   = Json.parse("""{"field1": [{"n_field1": "aaa", "n_field2": 23}]}""")
+  "parses nested record map correctly" in {
+    val data   = Json.parse("""{"field1": {"key1": {"n_field1": "aaa", "n_field2": 23}}}""")
     val record = new JsonConverter().parse(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
 
-    val rec1 = new GenericData.Record(schema.getField("field1").schema().getElementType)
+    val rec1 = new GenericData.Record(schema.getField("field1").schema().getValueType)
     rec1.put("n_field1", "aaa")
     rec1.put("n_field2", 23)
-    val expected = new GenericData.Array(schema.getField("field1").schema(), Seq(rec1).asJava)
-    record.get("field1") should ===(expected)
+    record.get("field1") should ===(Collections.singletonMap("key1", rec1))
   }
 
-  "applies default value to nested record array" in {
+  "applies default value to nested record map" in {
     val data   = Json.parse("{}")
     val record = new JsonConverter().parse(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
 
-    val rec1 = new GenericData.Record(schema.getField("field1").schema().getElementType)
+    val rec1 = new GenericData.Record(schema.getField("field1").schema().getValueType)
     rec1.put("n_field1", "bbb")
     rec1.put("n_field2", 33)
-    val expected = new GenericData.Array(schema.getField("field1").schema(), Seq(rec1).asJava)
-    record.get("field1") should ===(expected)
+    record.get("field1") should ===(Collections.singletonMap("key1", rec1))
   }
 }

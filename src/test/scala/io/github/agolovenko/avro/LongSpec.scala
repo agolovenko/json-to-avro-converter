@@ -1,4 +1,4 @@
-package org.echo.avro
+package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.reflect.ReflectData

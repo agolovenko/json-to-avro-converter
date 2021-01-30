@@ -1,4 +1,4 @@
-package org.echo.avro
+package io.github.agolovenko.avro
 
 import org.apache.avro.generic.GenericData
 import org.apache.avro.{JsonProperties, Schema}

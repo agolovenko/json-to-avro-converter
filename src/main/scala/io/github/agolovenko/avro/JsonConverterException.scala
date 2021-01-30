@@ -1,4 +1,4 @@
-package org.echo.avro
+package io.github.agolovenko.avro
 
 import play.api.libs.json.JsValue
 

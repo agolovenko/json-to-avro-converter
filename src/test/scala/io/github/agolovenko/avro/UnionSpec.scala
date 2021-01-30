@@ -1,4 +1,4 @@
-package org.echo.avro
+package io.github.agolovenko.avro
 
 import org.apache.avro.reflect.ReflectData
 import org.apache.avro.{JsonProperties, Schema}
@@ -8,22 +8,22 @@ import play.api.libs.json.Json
 
 import scala.collection.JavaConverters._
 
-class NullSpec extends AnyWordSpec with Matchers {
+class UnionSpec extends AnyWordSpec with Matchers {
   import Schema._
 
   private val doc               = "no-doc"
   private val ns                = "parser.test"
-  private val field             = new Field("field1", create(Type.NULL))
+  private val field             = new Field("field1", createUnion(create(Type.NULL), create(Type.INT)))
   private val schema            = createRecord("sch_rec1", doc, ns, false, Seq(field).asJava)
-  private val fieldWithDefault  = new Field("field2", create(Type.NULL), doc, JsonProperties.NULL_VALUE)
+  private val fieldWithDefault  = new Field("field2", createUnion(create(Type.NULL), create(Type.INT)), doc, JsonProperties.NULL_VALUE)
   private val schemaWithDefault = createRecord("sch_rec2", doc, ns, false, Seq(fieldWithDefault).asJava)
 
   "parses correctly" in {
-    val data   = Json.parse("""{"field1": null}""")
+    val data   = Json.parse("""{"field1": 12}""")
     val record = new JsonConverter().parse(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
-    record.get("field1") should ===(null)
+    record.get("field1") should ===(12)
   }
 
   "fails on missing value" in {

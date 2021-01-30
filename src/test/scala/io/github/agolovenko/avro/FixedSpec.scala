@@ -1,20 +1,20 @@
-package org.echo.avro
+package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
+import org.apache.avro.generic.GenericData
 import org.apache.avro.reflect.ReflectData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 
-import java.util
 import scala.collection.JavaConverters._
 
-class MapSpec extends AnyWordSpec with Matchers {
+class FixedSpec extends AnyWordSpec with Matchers {
   import Schema._
 
   private val doc               = "no-doc"
   private val ns                = "parser.test"
-  private val field             = new Field("field1", createMap(create(Type.INT)))
+  private val field             = new Field("field1", createFixed("sch_fix1", doc, ns, 3))
   private val schema            = createRecord("sch_rec1", doc, ns, false, Seq(field).asJava)
   private val schemaWithDefault = new Parser().parse("""
       |{
@@ -24,23 +24,21 @@ class MapSpec extends AnyWordSpec with Matchers {
       |    {
       |     "name": "field2", 
       |     "type": {
-      |       "type": "map",
-      |       "values": "int"
+      |       "name": "sch_fix1",
+      |       "type": "fixed",
+      |       "size": 3
       |     },
-      |     "default": {"one": 1, "two": 2,"three": 3}
+      |     "default": "\u00FF\uFF00\u00FF"
       |    }
       |  ]
       |}""".stripMargin)
 
   "parses correctly" in {
-    val data   = Json.parse("""{"field1": {"twelve": 12, "fourteen": 14}}""")
+    val data   = Json.parse(s"""{"field1": "${toBase64(Array[Byte](1, 2, 3))}"}""")
     val record = new JsonConverter().parse(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
-    val expected = new util.HashMap[String, Integer]()
-    expected.put("twelve", 12)
-    expected.put("fourteen", 14)
-    record.get("field1") should ===(expected)
+    record.get("field1") should ===(new GenericData.Fixed(field.schema(), Array[Byte](1, 2, 3)))
   }
 
   "fails on missing value" in {
@@ -49,12 +47,17 @@ class MapSpec extends AnyWordSpec with Matchers {
   }
 
   "fails on wrong type" in {
-    val data = Json.parse("""{"field1": [1]}""")
+    val data = Json.parse("""{"field1": 1}""")
     a[WrongTypeException] should be thrownBy new JsonConverter().parse(data, schema)
   }
 
-  "fails on wrong value type" in {
-    val data = Json.parse("""{"field1": {"one": "1"}}""")
+  "fails on non-base64 string" in {
+    val data = Json.parse("""{"field1": "1"}""")
+    a[WrongTypeException] should be thrownBy new JsonConverter().parse(data, schema)
+  }
+
+  "fails on wrong size" in {
+    val data = Json.parse(s"""{"field1": "${toBase64(Array[Byte](1, 2))}"}""")
     a[WrongTypeException] should be thrownBy new JsonConverter().parse(data, schema)
   }
 
@@ -63,10 +66,6 @@ class MapSpec extends AnyWordSpec with Matchers {
     val record = new JsonConverter().parse(data, schemaWithDefault)
 
     ReflectData.get().validate(schemaWithDefault, record) should ===(true)
-    val expected = new util.HashMap[String, Integer]()
-    expected.put("one", 1)
-    expected.put("two", 2)
-    expected.put("three", 3)
-    record.get("field2") should ===(expected)
+    record.get("field2") should ===(new GenericData.Fixed(field.schema(), Array[Byte](-1, 63, -1)))
   }
 }

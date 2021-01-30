@@ -1,4 +1,4 @@
-package org.echo
+package io.github.agolovenko
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericData, GenericDatumReader, GenericDatumWriter}

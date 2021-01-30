@@ -14,10 +14,9 @@ Converter of JSON object format to AVRO `GenericData.Record` written in Scala us
 ### Usage
 
 ```scala
-import org.echo.avro._
+import io.github.agolovenko.avro._
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import org.echo.avro.JsonConverter
 import play.api.libs.json.{JsValue, Json}
 
 val schema: Schema = new Schema.Parser().parse(
