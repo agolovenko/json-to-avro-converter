@@ -7,6 +7,7 @@ lazy val supportedScalaVersions = Seq(scala212, scala211)
 organization := "io.github.agolovenko"
 homepage := Some(url("https://github.com/agolovenko/json-to-avro-converter"))
 scmInfo := Some(ScmInfo(url("https://github.com/agolovenko/json-to-avro-converter"), "git@github.com:agolovenko/json-to-avro-converter.git"))
+developers := List(Developer("agolovenko", "agolovenko", "ashotik@gmail.com", url("https://github.com/agolovenko")))
 licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 
 scalaVersion := scala212

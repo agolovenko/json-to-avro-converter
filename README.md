@@ -12,7 +12,11 @@ Converter of JSON object format to AVRO `GenericData.Record` written in Scala us
 * Built against scala 2.11 and 2.12
 
 ### Usage
-
+#### build.sbt:
+```sbt
+libraryDependencies ++= "io.github.agolovenko" %% "json-to-avro-converter" % "1.0.1"
+```
+#### code:
 ```scala
 import io.github.agolovenko.avro._
 import org.apache.avro.Schema
