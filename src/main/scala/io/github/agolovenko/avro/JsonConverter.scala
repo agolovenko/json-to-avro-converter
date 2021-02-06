@@ -6,8 +6,9 @@ import play.api.libs.json._
 
 import java.lang.{Boolean => JBool, Double => JDouble, Float => JFloat, Integer => JInt, Long => JLong}
 import java.util.{Base64, HashMap => JHashMap, List => JList, Map => JMap}
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
+import scala.collection.compat._
 import scala.util.Try
 
 class JsonConverter {
@@ -166,7 +167,7 @@ class JsonConverter {
       new GenericData.Array(schema, extracted.asJava)
 
     case (MAP, map: JMap[_, _]) =>
-      map.asScala.mapValues { extractDefaultValue(_, schema.getValueType, path) }.asJava
+      map.asScala.view.mapValues { extractDefaultValue(_, schema.getValueType, path) }.toMap.asJava
 
     case (RECORD, map: JMap[_, _]) =>
       val result = new GenericData.Record(schema)

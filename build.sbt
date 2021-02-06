@@ -1,8 +1,9 @@
 import sbt.Opts.resolver.{sonatypeSnapshots, sonatypeStaging}
 
+lazy val scala213               = "2.13.4"
 lazy val scala212               = "2.12.13"
 lazy val scala211               = "2.11.12"
-lazy val supportedScalaVersions = Seq(scala212, scala211)
+lazy val supportedScalaVersions = Seq(scala213, scala212, scala211)
 
 organization := "io.github.agolovenko"
 homepage := Some(url("https://github.com/agolovenko/json-to-avro-converter"))
