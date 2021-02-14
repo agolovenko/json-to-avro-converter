@@ -9,7 +9,7 @@ Converter of JSON object format to AVRO `GenericData.Record` written in Scala us
 * data not present in schema is ignored
 * `BYTES` and `FIXED` and some `Logical Types` are supported through [StringParsers](src/main/scala/io/github/agolovenko/avro/StringParsers.scala)
 * Comprehensive Exceptions: General/Missing Value/Wrong Type. All containing JSON path and description
-* Built against scala 2.11 and 2.12
+* Built against scala `2.11`, `2.12` and `2.13`
 
 ### Usage
 #### build.sbt:
