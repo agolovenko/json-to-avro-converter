@@ -19,7 +19,7 @@ class StringSpec extends AnyWordSpec with Matchers {
 
   "parses correctly" in {
     val data   = Json.parse("""{"field1": "ev1"}""")
-    val record = new JsonConverter().parse(data, schema)
+    val record = new JsonParser()(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===("ev1")
@@ -27,12 +27,12 @@ class StringSpec extends AnyWordSpec with Matchers {
 
   "fails on missing value" in {
     val data = Json.parse("{}")
-    a[MissingValueException] should be thrownBy new JsonConverter().parse(data, schema)
+    a[MissingValueException] should be thrownBy new JsonParser()(data, schema)
   }
 
   "applies default value" in {
     val data   = Json.parse("{}")
-    val record = new JsonConverter().parse(data, schemaWithDefault)
+    val record = new JsonParser()(data, schemaWithDefault)
 
     ReflectData.get().validate(schema, record) should ===(true)
     record.get("field2") should ===("default")
