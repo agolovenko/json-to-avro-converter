@@ -12,6 +12,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 import scala.util.control.NonFatal
+
 class JsonParser(stringParsers: Map[String, String => Any] = Map.empty) {
   def apply(data: JsValue, schema: Schema): GenericData.Record = {
     implicit val path = mutable.ArrayStack[String]()
@@ -133,16 +134,14 @@ class JsonParser(stringParsers: Map[String, String => Any] = Map.empty) {
 
   private def parseString(str: String, schema: Schema)(implicit path: mutable.ArrayStack[String]): Any = {
     if (schema.getType == STRING || schema.getType == ENUM) str
-    else {
-      val typeName = JsonParser.typeName(schema)
-      stringParsers.get(typeName).fold(throw new WrongTypeException(schema, JsString(str), Some("no string parser supplied"))) { parser =>
+    else
+      stringParsers.get(typeName(schema)).fold(throw new WrongTypeException(schema, JsString(str), Some("no string parser supplied"))) { parser =>
         try {
           parser(str)
         } catch {
           case NonFatal(e) => throw new WrongTypeException(schema, JsString(str), Option(e.getMessage))
         }
       }
-    }
   }
 
   private def readNull(data: JsLookupResult, schema: Schema, defaultValue: Option[Any])(implicit path: mutable.ArrayStack[String]): Null = data match {
@@ -185,15 +184,4 @@ class JsonParser(stringParsers: Map[String, String => Any] = Map.empty) {
 
     case _ => throw new JsonParserException(s"Unsupported default value $defaultValue for type ${schema.getType}")
   }
-}
-
-object JsonParser {
-  def typeName(schema: Schema): String =
-    if (schema.getLogicalType != null) schema.getLogicalType.getName
-    else
-      schema.getType match {
-        case UNION => schema.getTypes.asScala.map(typeName).mkString("[", "|", "]")
-        case ENUM  => schema.getEnumSymbols.asScala.mkString("[", "|", "]")
-        case _     => schema.getType.name()
-      }
 }

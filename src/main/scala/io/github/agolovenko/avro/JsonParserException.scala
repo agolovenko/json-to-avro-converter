@@ -1,6 +1,5 @@
 package io.github.agolovenko.avro
 
-import io.github.agolovenko.avro.JsonParser.typeName
 import org.apache.avro.Schema
 import play.api.libs.json.JsValue
 

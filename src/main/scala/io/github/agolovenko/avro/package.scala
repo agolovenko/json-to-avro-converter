@@ -1,13 +1,24 @@
 package io.github.agolovenko
 
 import org.apache.avro.Schema
+import org.apache.avro.Schema.Type.{ENUM, UNION}
 import org.apache.avro.generic.{GenericData, GenericDatumReader, GenericDatumWriter}
 import org.apache.avro.io.{BinaryEncoder, DecoderFactory, EncoderFactory}
 
 import java.io.ByteArrayOutputStream
 import java.util.Base64
+import scala.jdk.CollectionConverters._
 
 package object avro {
+  def typeName(schema: Schema): String =
+    if (schema.getLogicalType != null) schema.getLogicalType.getName
+    else
+      schema.getType match {
+        case UNION => schema.getTypes.asScala.map(typeName).mkString("[", "|", "]")
+        case ENUM  => schema.getEnumSymbols.asScala.mkString("[", "|", "]")
+        case _     => schema.getType.name()
+      }
+
   def toBytes(records: Seq[GenericData.Record]): Seq[Array[Byte]] = {
     val writer                 = new GenericDatumWriter[GenericData.Record]()
     var encoder: BinaryEncoder = null
