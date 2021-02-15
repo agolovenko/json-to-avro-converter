@@ -12,6 +12,7 @@ import scala.collection.JavaConverters._
 
 class TimestampSpec extends AnyWordSpec with Matchers {
   import Schema._
+  import StringParsers.localDateTimeParsers
 
   private val doc               = "no-doc"
   private val ns                = "parser.test"
@@ -34,7 +35,7 @@ class TimestampSpec extends AnyWordSpec with Matchers {
     val ins      = Instant.ofEpochMilli(1613334344141L)
     val dateTime = LocalDateTime.ofInstant(ins, zoneId)
     val data     = Json.parse(s"""{"field1": "${dateTime.format(formatter)}"}""")
-    val record   = new JsonParser(StringParsers.localDateTimeParsers(formatter, zoneId))(data, schema)
+    val record   = new JsonParser(localDateTimeParsers(formatter, zoneId))(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(ins.toEpochMilli)
@@ -42,7 +43,7 @@ class TimestampSpec extends AnyWordSpec with Matchers {
 
   "fails on invalid type" in {
     val data = Json.parse(s"""{"field1": []}""")
-    a[WrongTypeException] should be thrownBy new JsonParser(StringParsers.localDateTimeParsers(formatter, zoneId))(data, schema)
+    a[WrongTypeException] should be thrownBy new JsonParser(localDateTimeParsers(formatter, zoneId))(data, schema)
   }
 
   "applies default value" in {

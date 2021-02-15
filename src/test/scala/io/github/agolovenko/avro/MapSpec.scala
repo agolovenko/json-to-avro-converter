@@ -12,10 +12,8 @@ import scala.collection.JavaConverters._
 class MapSpec extends AnyWordSpec with Matchers {
   import Schema._
 
-  private val doc               = "no-doc"
-  private val ns                = "parser.test"
   private val field             = new Field("field1", createMap(create(Type.INT)))
-  private val schema            = createRecord("sch_rec1", doc, ns, false, Seq(field).asJava)
+  private val schema            = createRecord("sch_rec1", "no-doc", "parser.test", false, Seq(field).asJava)
   private val schemaWithDefault = new Parser().parse("""
       |{
       |  "type": "record",

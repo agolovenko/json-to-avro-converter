@@ -25,7 +25,7 @@ import org.apache.avro.generic.GenericData
 import play.api.libs.json.{JsValue, Json}
 import StringParsers._
 
-val schema: Schema = new Schema.Parser().parse(
+val schema = new Schema.Parser().parse(
   """
     |{
     |  "type": "record",
