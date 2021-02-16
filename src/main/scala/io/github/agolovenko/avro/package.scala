@@ -10,7 +10,7 @@ import java.util.Base64
 import scala.jdk.CollectionConverters._
 
 package object avro {
-  def typeName(schema: Schema): String =
+  private[avro] def typeName(schema: Schema): String =
     if (schema.getLogicalType != null) schema.getLogicalType.getName
     else
       schema.getType match {

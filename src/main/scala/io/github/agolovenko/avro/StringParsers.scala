@@ -3,6 +3,7 @@ package io.github.agolovenko.avro
 import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema.Type.{BOOLEAN, BYTES, DOUBLE, FIXED, FLOAT, INT, LONG}
 
+import java.nio.ByteBuffer
 import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
@@ -18,7 +19,7 @@ object StringParsers {
   )
 
   val base64Parsers: Map[String, String => Any] = Map(
-    BYTES.name() -> parseBase64,
+    BYTES.name() -> (str => ByteBuffer.wrap(parseBase64(str))),
     FIXED.name() -> parseBase64
   )
 

@@ -6,11 +6,13 @@ import org.apache.avro.reflect.ReflectData
 import play.api.libs.json._
 
 import java.lang.{Boolean => JBool, Double => JDouble, Float => JFloat, Integer => JInt, Long => JLong}
+import java.nio.ByteBuffer
 import java.util.{Map => JMap}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
+import scala.util.control.NonFatal
 
-class JsonEncoder {
+class JsonEncoder(stringEncoders: Map[String, Any => String] = Map.empty) {
   import Schema.Type._
   def apply(data: GenericData.Record): JsObject =
     if (ReflectData.get().validate(data.getSchema, data)) jsObj(data, data.getSchema)
@@ -22,25 +24,36 @@ class JsonEncoder {
     JsObject(fields)
   }
 
-  private def jsVal(data: Any, schema: Schema): JsValue = (schema.getType, data) match {
-    case (NULL, null)                           => JsNull
-    case (RECORD, record: GenericData.Record)   => jsObj(record, schema)
-    case (ENUM, enum: GenericData.EnumSymbol)   => JsString(enum.toString)
-    case (ARRAY, array: GenericData.Array[Any]) => jsArray(array, schema)
-    case (MAP, map: JMap[String, Any])          => jsMap(map, schema)
-    case (UNION, _)                             => union(data, schema)
-    case (BYTES, _: Array[Byte])                => throw new IllegalArgumentException(s"Unsupported type: $BYTES")
-    case (FIXED, _: GenericData.Fixed)          => throw new IllegalArgumentException(s"Unsupported type: $FIXED")
+  private def jsVal(data: Any, schema: Schema): JsValue =
+    stringEncoders
+      .get(typeName(schema))
+      .fold {
+        (schema.getType, data) match {
+          case (NULL, null)                           => JsNull
+          case (RECORD, record: GenericData.Record)   => jsObj(record, schema)
+          case (ENUM, enum: GenericData.EnumSymbol)   => JsString(enum.toString)
+          case (ARRAY, array: GenericData.Array[Any]) => jsArray(array, schema)
+          case (MAP, map: JMap[String, Any])          => jsMap(map, schema)
+          case (UNION, _)                             => union(data, schema)
+          case (BYTES, _: ByteBuffer)                 => throw new IllegalArgumentException(s"$BYTES type is supported through string encoders")
+          case (FIXED, _: GenericData.Fixed)          => throw new IllegalArgumentException(s"$FIXED type is supported through string encoders")
 
-    case (STRING, str: String)     => JsString(str)
-    case (INT, int: JInt)          => JsNumber(BigDecimal(int.intValue()))
-    case (LONG, long: JLong)       => JsNumber(BigDecimal(long.longValue()))
-    case (FLOAT, float: JFloat)    => JsNumber(BigDecimal(float.floatValue()))
-    case (DOUBLE, double: JDouble) => JsNumber(BigDecimal(double.doubleValue()))
-    case (BOOLEAN, bool: JBool)    => JsBoolean(bool.booleanValue())
+          case (STRING, str: String)     => JsString(str)
+          case (INT, int: JInt)          => JsNumber(BigDecimal(int.intValue()))
+          case (LONG, long: JLong)       => JsNumber(BigDecimal(long.longValue()))
+          case (FLOAT, float: JFloat)    => JsNumber(BigDecimal(float.floatValue()))
+          case (DOUBLE, double: JDouble) => JsNumber(BigDecimal(double.doubleValue()))
+          case (BOOLEAN, bool: JBool)    => JsBoolean(bool.booleanValue())
 
-    case (schemaType, value) => throw new IllegalArgumentException(s"Unexpected value '$value' of type $schemaType")
-  }
+          case (schemaType, value) => throw new IllegalArgumentException(s"Unexpected value '$value' of type $schemaType")
+        }
+      } { encoder =>
+        try {
+          JsString(encoder(data))
+        } catch {
+          case NonFatal(e) => throw new IllegalArgumentException(s"Failed to encode value '$data' of type ${typeName(schema)}: ${e.getMessage}")
+        }
+      }
 
   private def jsArray(data: GenericData.Array[Any], schema: Schema): JsArray = {
     val elements = data.asScala.map { jsVal(_, schema.getElementType) }

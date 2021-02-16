@@ -6,6 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 
+import java.nio.ByteBuffer
 import scala.collection.JavaConverters._
 
 class BytesSpec extends AnyWordSpec with Matchers {
@@ -31,7 +32,7 @@ class BytesSpec extends AnyWordSpec with Matchers {
     val record = new JsonParser(StringParsers.base64Parsers)(data, schema)
 
     ReflectData.get().validate(schema, record) should ===(true)
-    record.get("field1") should ===(Array[Byte](1, 2, 3))
+    record.get("field1") should ===(ByteBuffer.wrap(Array[Byte](1, 2, 3)))
   }
 
   "fails on missing value" in {
@@ -54,6 +55,6 @@ class BytesSpec extends AnyWordSpec with Matchers {
     val record = new JsonParser()(data, schemaWithDefault)
 
     ReflectData.get().validate(schemaWithDefault, record) should ===(true)
-    record.get("field2") should ===(Array[Byte](-1, 63))
+    record.get("field2") should ===(ByteBuffer.wrap(Array[Byte](-1, 63)))
   }
 }

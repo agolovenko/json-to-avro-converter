@@ -6,6 +6,7 @@ import org.apache.avro.{JsonProperties, Schema}
 import play.api.libs.json._
 
 import java.lang.{Boolean => JBool, Double => JDouble, Float => JFloat, Integer => JInt, Long => JLong}
+import java.nio.ByteBuffer
 import java.util.{HashMap => JHashMap, List => JList, Map => JMap}
 import scala.collection.compat._
 import scala.collection.mutable
@@ -162,7 +163,7 @@ class JsonParser(stringParsers: Map[String, String => Any] = Map.empty) {
     case (FLOAT, value: JFloat)            => value.floatValue()
     case (DOUBLE, value: JDouble)          => value.doubleValue()
     case (BOOLEAN, value: JBool)           => value.booleanValue()
-    case (BYTES, value: Array[Byte])       => value
+    case (BYTES, value: Array[Byte])       => ByteBuffer.wrap(value)
     case (FIXED, value: Array[Byte])       => value
 
     case (ARRAY, list: JList[_]) =>
