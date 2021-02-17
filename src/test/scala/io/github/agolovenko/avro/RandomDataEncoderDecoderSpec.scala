@@ -6,8 +6,8 @@ import org.scalatest.Inspectors.forAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, ZoneId}
 
 class RandomDataEncoderDecoderSpec extends AnyWordSpec with Matchers {
   import RandomData._
@@ -113,41 +113,28 @@ class RandomDataEncoderDecoderSpec extends AnyWordSpec with Matchers {
       |        "type": "int",
       |        "logicalType": "time-millis"
       |      }
-      |    },
-      |    {
-      |      "name": "f_timestamp",
-      |      "type": {
-      |        "type": "long",
-      |        "logicalType": "timestamp-millis"
-      |      }
       |    }
       |  ]
       |}""".stripMargin)
 
   "encodes json for RandomData and parses it back to original" in {
-    val zoneId = ZoneId.of("CET")
-
     val encoder = new JsonEncoder(
       base64Encoders
         ++ dateEncoder(ISO_DATE)
         ++ timeEncoders(ISO_LOCAL_TIME)
-        ++ dateTimeEncoders(ISO_LOCAL_DATE_TIME, zoneId)
     )
 
     val parser = new JsonParser(
       base64Parsers
         ++ dateParser(ISO_DATE)
         ++ timeParsers(ISO_LOCAL_TIME)
-        ++ localDateTimeParsers(ISO_LOCAL_DATE_TIME, zoneId)
     )
 
     val fromDate = LocalDate.of(2020, 1, 1)
     val randomData = new RandomData(
       schema,
       total = 1 << 10,
-      dateGenerator(fromDate, 1 << 10)
-        ++ timeGenerators
-        ++ dateTimeGenerators(fromDate, 1 << 10, ZoneId.of("UTC"))
+      dateGenerator(fromDate, 1 << 10) ++ timeGenerators
     )
 
     val jsons = randomData.map { r =>
