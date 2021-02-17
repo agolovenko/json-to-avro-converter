@@ -42,8 +42,8 @@ class IntSpec extends AnyWordSpec with Matchers {
   }
 
   "parses from string" in {
-    val data = Json.parse("""{"field1": "12"}""")
-    val record =  new JsonParser(StringParsers.primitiveParsers)(data, schema)
+    val data   = Json.parse("""{"field1": "12"}""")
+    val record = new JsonParser(StringParsers.primitiveParsers)(data, schema)
 
     GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(12)
