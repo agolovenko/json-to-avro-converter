@@ -2,15 +2,17 @@ package io.github.agolovenko.avro
 
 import org.apache.avro.Schema.Parser
 import org.apache.avro.generic.GenericData
+import org.scalatest.Inspectors.forAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, ZoneId}
 
-class JsonEncoderSpec extends AnyWordSpec with Matchers {
+class RandomDataEncoderDecoderSpec extends AnyWordSpec with Matchers {
   import RandomData._
   import StringEncoders._
+  import StringParsers._
 
   import DateTimeFormatter._
 
@@ -122,20 +124,41 @@ class JsonEncoderSpec extends AnyWordSpec with Matchers {
       |  ]
       |}""".stripMargin)
 
-  "produces json for RandomData" in {
+  "encodes json for RandomData and parses it back to original" in {
+    val zoneId = ZoneId.of("CET")
+
     val encoder = new JsonEncoder(
       base64Encoders
         ++ dateEncoder(ISO_DATE)
         ++ timeEncoders(ISO_LOCAL_TIME)
-        ++ dateTimeEncoders(ISO_LOCAL_DATE_TIME, ZoneId.of("CET"))
+        ++ dateTimeEncoders(ISO_LOCAL_DATE_TIME, zoneId)
     )
 
-    val fromDate   = LocalDate.of(2020, 1, 1)
-    val generators = dateGenerator(fromDate, 1 << 10) ++ timeGenerators ++ dateTimeGenerators(fromDate, 1 << 10, ZoneId.of("UTC"))
-    val conf       = RandomDataConf(schema, total = 1 << 10, generators)
-    val jsons = new RandomData(conf).map { r =>
+    val parser = new JsonParser(
+      base64Parsers
+        ++ dateParser(ISO_DATE)
+        ++ timeParsers(ISO_LOCAL_TIME)
+        ++ localDateTimeParsers(ISO_LOCAL_DATE_TIME, zoneId)
+    )
+
+    val fromDate = LocalDate.of(2020, 1, 1)
+    val randomData = new RandomData(
+      schema,
+      total = 1 << 10,
+      dateGenerator(fromDate, 1 << 10)
+        ++ timeGenerators
+        ++ dateTimeGenerators(fromDate, 1 << 10, ZoneId.of("UTC"))
+    )
+
+    val jsons = randomData.map { r =>
       val record = r.asInstanceOf[GenericData.Record]
       record -> encoder(record)
     }.toVector
+
+    forAll(jsons) {
+      case (original, json) =>
+        val parsed = parser(json, schema)
+        parsed should ===(original)
+    }
   }
 }

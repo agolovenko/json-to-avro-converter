@@ -9,19 +9,14 @@ import java.util
 import scala.jdk.CollectionConverters._
 import scala.util.Random
 
-case class RandomDataConf(
+class RandomData(
     rootSchema: Schema,
     total: Int,
     typedGenerators: Map[String, Random => Any] = Map.empty,
     seed: Long = System.currentTimeMillis,
-    maxArrayLength: Int = 1 << 2,
-    maxStringLength: Int = 1 << 4,
-    maxBytesLength: Int = 1 << 4
-)
-
-class RandomData(conf: RandomDataConf) extends Iterator[Any] {
+    maxLength: Int = 1 << 4
+) extends Iterator[Any] {
   import Schema.Type._
-  import conf._
 
   private var count  = 0
   private val random = new Random(seed)
@@ -46,14 +41,14 @@ class RandomData(conf: RandomDataConf) extends Iterator[Any] {
             val symbols = schema.getEnumSymbols
             new GenericData.EnumSymbol(schema, symbols.get(random.nextInt(symbols.size)))
           case ARRAY =>
-            val length = random.nextInt(maxArrayLength)
+            val length = random.nextInt(maxLength)
             val array  = new GenericData.Array[Any](length, schema)
             for (_ <- 0 until length) {
               array.add(generate(schema.getElementType))
             }
             array
           case MAP =>
-            val length = random.nextInt(maxArrayLength)
+            val length = random.nextInt(maxLength)
             val map    = new util.HashMap[String, Any](length)
             for (_ <- 0 until length) {
               map.put(randomString(random), generate(schema.getValueType))
@@ -67,7 +62,7 @@ class RandomData(conf: RandomDataConf) extends Iterator[Any] {
             random.nextBytes(bytes)
             new GenericData.Fixed(schema, bytes)
           case BYTES =>
-            val bytes = new Array[Byte](maxBytesLength)
+            val bytes = new Array[Byte](maxLength)
             random.nextBytes(bytes)
             ByteBuffer.wrap(bytes)
           case STRING  => randomString(random)
@@ -82,7 +77,7 @@ class RandomData(conf: RandomDataConf) extends Iterator[Any] {
   }
 
   private def randomString(random: Random): String = {
-    val length = random.nextInt(maxStringLength)
+    val length = random.nextInt(maxLength)
     val bytes  = new Array[Byte](length)
     for (i <- 0 until length) {
       bytes(i) = ('a' + random.nextInt('z' - 'a')).toByte
@@ -93,25 +88,25 @@ class RandomData(conf: RandomDataConf) extends Iterator[Any] {
 }
 
 object RandomData {
-  def randomDay(fromDate: LocalDate, maxDays: Int, random: Random): Int = fromDate.toEpochDay.intValue() + random.nextInt(maxDays)
+  def randomDay(fromDate: LocalDate, maxDays: Int)(implicit random: Random): Int = fromDate.toEpochDay.intValue() + random.nextInt(maxDays)
 
-  def randomEpochSecond(fromDate: LocalDate, maxDays: Int, zoneId: ZoneId, random: Random): Long =
-    LocalDate.ofEpochDay(randomDay(fromDate, maxDays, random)).atStartOfDay().atZone(zoneId).toEpochSecond
+  def randomDayEpochSecond(fromDate: LocalDate, maxDays: Int, zoneId: ZoneId)(implicit random: Random): Long =
+    LocalDate.ofEpochDay(randomDay(fromDate, maxDays)).atStartOfDay().atZone(zoneId).toEpochSecond
 
-  def randomDayMillis(random: Random): Int  = random.nextInt(24 * 3600 * 1000)
-  def randomDayMicros(random: Random): Long = randomDayMillis(random).toLong * random.nextInt(1000)
+  def randomMillisOfDay(implicit random: Random): Int  = random.nextInt(24 * 3600 * 1000)
+  def randomMicrosOfDay(implicit random: Random): Long = randomMillisOfDay(random).toLong * random.nextInt(1000)
 
   def dateGenerator(fromDate: LocalDate, maxDays: Int): Map[String, Random => Any] = Map(
-    LogicalTypes.date().getName -> (randomDay(fromDate, maxDays, _))
+    LogicalTypes.date().getName -> (implicit random => randomDay(fromDate, maxDays))
   )
 
   val timeGenerators: Map[String, Random => Any] = Map(
-    LogicalTypes.timeMillis().getName -> randomDayMillis,
-    LogicalTypes.timeMicros().getName -> randomDayMicros
+    LogicalTypes.timeMillis().getName -> (implicit random => randomMillisOfDay),
+    LogicalTypes.timeMicros().getName -> (implicit random => randomMicrosOfDay)
   )
 
   def dateTimeGenerators(fromDate: LocalDate, maxDays: Int, zoneId: ZoneId): Map[String, Random => Any] = Map(
-    LogicalTypes.timestampMillis().getName -> (random => randomEpochSecond(fromDate, maxDays, zoneId, random) * 1000L + randomDayMillis(random)),
-    LogicalTypes.timestampMicros().getName -> (random => randomEpochSecond(fromDate, maxDays, zoneId, random) * 1000000L + randomDayMicros(random))
+    LogicalTypes.timestampMillis().getName -> (implicit random => randomDayEpochSecond(fromDate, maxDays, zoneId) * 1000L + randomMillisOfDay),
+    LogicalTypes.timestampMicros().getName -> (implicit random => randomDayEpochSecond(fromDate, maxDays, zoneId) * 1000000L + randomMicrosOfDay)
   )
 }

@@ -4,9 +4,9 @@ import org.apache.avro.LogicalTypes
 import org.apache.avro.Schema.Type._
 
 import java.nio.ByteBuffer
+import java.time._
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
-import java.time._
 import java.util.Base64
 
 object StringParsers {
@@ -24,7 +24,7 @@ object StringParsers {
   )
 
   def dateParser(formatter: DateTimeFormatter): Map[String, String => Any] = Map(
-    LogicalTypes.date().getName -> (LocalDate.parse(_, formatter).toEpochDay)
+    LogicalTypes.date().getName -> (LocalDate.parse(_, formatter).toEpochDay.toInt)
   )
 
   def timeParsers(formatter: DateTimeFormatter): Map[String, String => Any] = Map(
