@@ -1,7 +1,7 @@
 package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
-import org.apache.avro.reflect.ReflectData
+import org.apache.avro.generic.GenericData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
@@ -22,7 +22,7 @@ class FloatSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("""{"field1": 12.5}""")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(12.5f)
   }
 
@@ -40,7 +40,7 @@ class FloatSpec extends AnyWordSpec with Matchers {
     val data = Json.parse("""{"field1": "12"}""")
     val record =  new JsonParser(StringParsers.primitiveParsers)(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(12f)
   }
 
@@ -48,7 +48,7 @@ class FloatSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser()(data, schemaWithDefault)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field2") should ===(42.5f)
   }
 }

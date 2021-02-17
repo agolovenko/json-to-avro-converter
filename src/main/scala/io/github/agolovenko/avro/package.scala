@@ -10,15 +10,6 @@ import java.util.Base64
 import scala.jdk.CollectionConverters._
 
 package object avro {
-  private[avro] def typeName(schema: Schema): String =
-    if (schema.getLogicalType != null) schema.getLogicalType.getName
-    else
-      schema.getType match {
-        case UNION => schema.getTypes.asScala.map(typeName).mkString("[", "|", "]")
-        case ENUM  => schema.getEnumSymbols.asScala.mkString("[", "|", "]")
-        case _     => schema.getType.name()
-      }
-
   def toBytes(records: Seq[GenericData.Record]): Seq[Array[Byte]] = {
     val writer                 = new GenericDatumWriter[GenericData.Record]()
     var encoder: BinaryEncoder = null
@@ -53,6 +44,15 @@ package object avro {
 
     reader.read(null, decoder)
   }
+
+  private[avro] def typeName(schema: Schema): String =
+    if (schema.getLogicalType != null) schema.getLogicalType.getName
+    else
+      schema.getType match {
+        case UNION => schema.getTypes.asScala.map(typeName).mkString("[", "|", "]")
+        case ENUM  => schema.getEnumSymbols.asScala.mkString("[", "|", "]")
+        case _     => schema.getType.name()
+      }
 
   private[avro] def toBase64(bytes: Array[Byte]): String = new String(Base64.getEncoder.encode(bytes), "UTF-8")
 }

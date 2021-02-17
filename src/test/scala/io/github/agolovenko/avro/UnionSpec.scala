@@ -1,6 +1,6 @@
 package io.github.agolovenko.avro
 
-import org.apache.avro.reflect.ReflectData
+import org.apache.avro.generic.GenericData
 import org.apache.avro.{JsonProperties, Schema}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -22,7 +22,7 @@ class UnionSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("""{"field1": 12}""")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(12)
   }
 
@@ -40,7 +40,7 @@ class UnionSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser()(data, schemaWithDefault)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field2") should ===(null)
   }
 }

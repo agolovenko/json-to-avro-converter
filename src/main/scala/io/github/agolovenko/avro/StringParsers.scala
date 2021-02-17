@@ -1,12 +1,12 @@
 package io.github.agolovenko.avro
 
 import org.apache.avro.LogicalTypes
-import org.apache.avro.Schema.Type.{BOOLEAN, BYTES, DOUBLE, FIXED, FLOAT, INT, LONG}
+import org.apache.avro.Schema.Type._
 
 import java.nio.ByteBuffer
-import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoField
+import java.time._
 import java.util.Base64
 
 object StringParsers {

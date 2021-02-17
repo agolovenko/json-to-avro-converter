@@ -2,7 +2,6 @@ package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import org.apache.avro.reflect.ReflectData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
@@ -37,7 +36,7 @@ class FixedSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse(s"""{"field1": "${toBase64(Array[Byte](1, 2, 3))}"}""")
     val record = new JsonParser(StringParsers.base64Parsers)(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(new GenericData.Fixed(field.schema(), Array[Byte](1, 2, 3)))
   }
 
@@ -65,7 +64,7 @@ class FixedSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser(StringParsers.base64Parsers)(data, schemaWithDefault)
 
-    ReflectData.get().validate(schemaWithDefault, record) should ===(true)
+    GenericData.get().validate(schemaWithDefault, record) should ===(true)
     record.get("field2") should ===(new GenericData.Fixed(field.schema(), Array[Byte](-1, 63, -1)))
   }
 }

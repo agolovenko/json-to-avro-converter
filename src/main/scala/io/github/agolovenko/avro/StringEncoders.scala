@@ -5,8 +5,8 @@ import org.apache.avro.Schema.Type.{BYTES, FIXED}
 import org.apache.avro.generic.GenericData
 
 import java.nio.ByteBuffer
-import java.time.format.DateTimeFormatter
 import java.time._
+import java.time.format.DateTimeFormatter
 
 object StringEncoders {
   val base64Encoders: Map[String, Any => String] = Map(

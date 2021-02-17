@@ -1,7 +1,7 @@
 package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
-import org.apache.avro.reflect.ReflectData
+import org.apache.avro.generic.GenericData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
@@ -34,7 +34,7 @@ class MapSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("""{"field1": {"twelve": 12, "fourteen": 14}}""")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     val expected = new util.HashMap[String, Integer]()
     expected.put("twelve", 12)
     expected.put("fourteen", 14)
@@ -60,7 +60,7 @@ class MapSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser()(data, schemaWithDefault)
 
-    ReflectData.get().validate(schemaWithDefault, record) should ===(true)
+    GenericData.get().validate(schemaWithDefault, record) should ===(true)
     val expected = new util.HashMap[String, Integer]()
     expected.put("one", 1)
     expected.put("two", 2)

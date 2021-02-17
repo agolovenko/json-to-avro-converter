@@ -1,6 +1,6 @@
 package io.github.agolovenko.avro
 
-import org.apache.avro.reflect.ReflectData
+import org.apache.avro.generic.GenericData
 import org.apache.avro.{LogicalTypes, Schema}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -27,7 +27,7 @@ class TimestampSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("""{"field1": 92147483647}""")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(92147483647L)
   }
 
@@ -37,7 +37,7 @@ class TimestampSpec extends AnyWordSpec with Matchers {
     val data     = Json.parse(s"""{"field1": "${dateTime.format(formatter)}"}""")
     val record   = new JsonParser(localDateTimeParsers(formatter, zoneId))(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(ins.toEpochMilli)
   }
 
@@ -50,7 +50,7 @@ class TimestampSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser()(data, schemaWithDefault)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field2") should ===(92147483647L)
   }
 }

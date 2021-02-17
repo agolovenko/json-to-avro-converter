@@ -2,7 +2,6 @@ package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import org.apache.avro.reflect.ReflectData
 import play.api.libs.json._
 
 import java.lang.{Boolean => JBool, Double => JDouble, Float => JFloat, Integer => JInt, Long => JLong}
@@ -15,7 +14,7 @@ import scala.util.control.NonFatal
 class JsonEncoder(stringEncoders: Map[String, Any => String] = Map.empty) {
   import Schema.Type._
   def apply(data: GenericData.Record): JsObject =
-    if (ReflectData.get().validate(data.getSchema, data)) jsObj(data, data.getSchema)
+    if (GenericData.get().validate(data.getSchema, data)) jsObj(data, data.getSchema)
     else throw new IllegalArgumentException("Invalid record")
 
   private def jsObj(data: GenericData.Record, schema: Schema): JsObject = {

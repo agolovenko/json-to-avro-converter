@@ -2,7 +2,6 @@ package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import org.apache.avro.reflect.ReflectData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
@@ -46,7 +45,7 @@ class NestedRecordArraySpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("""{"field1": [{"n_field1": "aaa", "n_field2": 23}]}""")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
 
     val rec1 = new GenericData.Record(schema.getField("field1").schema().getElementType)
     rec1.put("n_field1", "aaa")
@@ -59,7 +58,7 @@ class NestedRecordArraySpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
 
     val rec1 = new GenericData.Record(schema.getField("field1").schema().getElementType)
     rec1.put("n_field1", "bbb")

@@ -1,7 +1,7 @@
 package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
-import org.apache.avro.reflect.ReflectData
+import org.apache.avro.generic.GenericData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
@@ -21,7 +21,7 @@ class StringSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("""{"field1": "ev1"}""")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===("ev1")
   }
 
@@ -34,7 +34,7 @@ class StringSpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser()(data, schemaWithDefault)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field2") should ===("default")
   }
 }

@@ -2,7 +2,6 @@ package io.github.agolovenko.avro
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
-import org.apache.avro.reflect.ReflectData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
@@ -34,7 +33,7 @@ class ArraySpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("""{"field1": [12, 14]}""")
     val record = new JsonParser()(data, schema)
 
-    ReflectData.get().validate(schema, record) should ===(true)
+    GenericData.get().validate(schema, record) should ===(true)
     record.get("field1") should ===(new GenericData.Array(field.schema(), Seq(12, 14).asJava))
   }
 
@@ -52,7 +51,7 @@ class ArraySpec extends AnyWordSpec with Matchers {
     val data   = Json.parse("{}")
     val record = new JsonParser()(data, schemaWithDefault)
 
-    ReflectData.get().validate(schemaWithDefault, record) should ===(true)
+    GenericData.get().validate(schemaWithDefault, record) should ===(true)
     record.get("field2") should ===(new GenericData.Array(createArray(create(Type.INT)), Seq(1, 2, 3).asJava))
   }
 }
