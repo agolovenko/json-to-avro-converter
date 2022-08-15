@@ -1,5 +1,8 @@
 # json-to-avro-converter
 
+## !!! THIS PROJECT IS NOT SUPPORTED SINCE IT'S NOW A PART OF [AVRO-TOOLS PROJECT](https://github.com/agolovenko/avro-tools)
+## !!! PLEASE USE [AVRO-TOOLS PROJECT](https://github.com/agolovenko/avro-tools) FOR ALL SUPPORT COMMUNICATION
+
 Converter of JSON object format to AVRO `GenericData.Record` written in Scala using Play-Json
 
 ### Features
